@@ -1,2 +1,5 @@
 # HBM2019_1_team_project
-Experiment scripts based on PTB3.
+Class: Human Brain Mapping 2019.
+Purpose: Team project 
+
+All experiment scripts are based on MATLAB and PsychTtoolbox3. 
