@@ -1,5 +1,13 @@
-# HBM2019_1_team_project
-Class: Human Brain Mapping 2019.
-Purpose: Team project 
+# HBM2019-1 team project
+(working) 
 
-All experiment scripts are based on MATLAB and PsychTtoolbox3. 
+Class: Human Brain Mapping 2019 @Biomed in SKKU.
+
+Purpose: fMRI experiemnt with behavioral measurements.
+
+All experiment scripts are based on MATLAB and PsychToolbox3. 
+
+
+
+
+email: suhwan.gim.psych@gmail.com

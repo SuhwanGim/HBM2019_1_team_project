@@ -1,4 +1,4 @@
-function main_task(SID,runNumber, varargin)
+function main_task(SID,ts, runNumber, varargin)
 % 
 %   ** Descrip ** 
 % This function is for running experimental paradigm (Post-encoding stress
@@ -22,6 +22,8 @@ function main_task(SID,runNumber, varargin)
 %       main_task('EST001', 'fmri','biopac');
 %   ** Input **
 %       - SID: name of subject 
+%       - ts: trial sequencs
+%       - runNumber
 %   ** Optional Input **
 %       - 'test': Lower reslutions. (1280 720 px)
 %       - 'fmri': If you run this function in MRI settings. This option can
@@ -69,6 +71,7 @@ dat.datafile = fname;
 dat.starttime = datestr(clock, 0); % date-time
 dat.starttime_getsecs = GetSecs; % in the same format of timestamps for each trial
 dat.runNumber = runNumber;
+dat.ts = ts;
 save(dat.datafile,'dat');
 %% SETUP: Screen
 Screen('Clear');
@@ -178,30 +181,29 @@ try
         trial_t = GetSecs;
         dat.dat{trial_i}.TrialStartTimestamp=trial_t; 
         % 1. ITI
-        
+        fixPoint(trial_t, ts.ITI(trial_i,1), white, '+') % ITI
         dat.dat{trial_i}.ITI_EndTime=GetSecs; 
         % 2. MOVIE CLIP
         
         dat.dat{trial_i}.Movie_EndTime=GetSecs; 
         % 3. ISI1
-        
+        fixPoint(trial_t, ts.ITI(trial_i,2), white, '+') % ITI
         dat.dat{trial_i}.ISI1_EndTime=GetSecs; 
         % 4. MATH PROBLEM 
         
         dat.dat{trial_i}.Math_EndTime=GetSecs; 
         % 5. ISI2
-        
+        fixPoint(trial_t, ts.ITI(trial_i,3), white, '+') % ITI
         dat.dat{trial_i}.ISI2_EndTime=GetSecs; 
         % 6. Short Quiz
         
         dat.dat{trial_i}.ShortQuiz_EndTime=GetSecs; 
         % 7. ISI3
-        
+        fixPoint(trial_t, ts.ITI(trial_i,4), white, '+') % ITI
         dat.dat{trial_i}.ISI3_EndTime=GetSecs; 
-        % 8. REPORT level of stress        
+        % 8. REPORT level of stress  (one to ten)
         
-        dat.dat{trial_i}.ReportStress_EndTime=GetSecs; 
-        
+        dat.dat{trial_i}.ReportStress_EndTime=GetSecs;         
         % End of trial
         dat.dat{trial_i}.TrialEndTimestamp=GetSecs; 
         save(dat.datafile, '-append', 'dat');
@@ -329,4 +331,14 @@ DrawFormattedText(theWindow, EXP_start_text, 'center', 'center', white, [], [], 
 Screen('Flip', theWindow);
 
 end
+
+function fixPoint(t_time, seconds, color, stimText)
+global theWindow;
+% stimText = '+';
+% Screen(theWindow,'FillRect', bgcolor, window_rect);
+DrawFormattedText(theWindow, double(stimText), 'center', 'center', color, [], [], [], 1.2);
+Screen('Flip', theWindow);
+waitsec_fromstarttime(t_time, seconds);
+end
+
 
