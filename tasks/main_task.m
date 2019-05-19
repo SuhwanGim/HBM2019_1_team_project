@@ -35,7 +35,6 @@ function main_task(SID,ts, runNumber, varargin)
 testmode = false;
 USE_BIOPAC = false;
 dofmri = false;
-USE_EYELINK = false;
 start_trial = 1;
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -56,7 +55,7 @@ for i = 1:length(varargin)
 end
 
 %% GLOBAL vaiable
-global theWindow W H; % window property
+global theWindow W H window_num; % window property
 global white red red_Alpha orange bgcolor yellow; % color
 global window_rect % rating scale
 global fontsize;
@@ -73,6 +72,8 @@ dat.starttime_getsecs = GetSecs; % in the same format of timestamps for each tri
 dat.runNumber = runNumber;
 dat.ts = ts;
 save(dat.datafile,'dat');
+%% SETUP: IO
+
 %% SETUP: Screen
 Screen('Clear');
 Screen('CloseAll');
@@ -184,13 +185,14 @@ try
         fixPoint(trial_t, ts.ITI(trial_i,1), white, '+') % ITI
         dat.dat{trial_i}.ITI_EndTime=GetSecs; 
         % 2. MOVIE CLIP
-        
+        moive_files(trial_i) = fullfile(pwd,'examples1.mov');
+        run_movie(moive_files(trial_i));
         dat.dat{trial_i}.Movie_EndTime=GetSecs; 
         % 3. ISI1
         fixPoint(trial_t, ts.ITI(trial_i,2), white, '+') % ITI
         dat.dat{trial_i}.ISI1_EndTime=GetSecs; 
         % 4. MATH PROBLEM 
-        
+        showMath
         dat.dat{trial_i}.Math_EndTime=GetSecs; 
         % 5. ISI2
         fixPoint(trial_t, ts.ITI(trial_i,3), white, '+') % ITI
@@ -265,6 +267,9 @@ end
 
 end
 
+% ======================================================================= %
+%                   IN-LINE FUNCTION                                      %
+% ======================================================================= %
 function display_runmessage(run_i, run_num, dofmri)
 
 % MESSAGE FOR EACH RUN
@@ -342,3 +347,41 @@ waitsec_fromstarttime(t_time, seconds);
 end
 
 
+function run_movie(moviefile,varargin)
+
+global theWindow 
+%moviefile = fullfile(pwd,'examples1.mov');
+playmode =1;
+
+[moviePtr, dura] = Screen('OpenMovie', theWindow, moviefile);
+Screen('PlayMovie', moviePtr, playmode); %Screen('PlayMovie?')% 0 == Stop playback, 1 == Normal speed forward, -1 == Normal speed backward,
+t = GetSecs; 
+while t-GetSecs > dura %~KbCheck
+    % Wait for next movie frame, retrieve texture handle to it
+    tex = Screen('GetMovieImage', theWindow, moviePtr);
+    Screen('DrawTexture', theWindow, tex);
+    % Valid texture returned? A negative value means end of movie reached:
+    if tex<=0
+        % We're done, break out of loop:
+        break;
+    end
+    
+    
+    % Update display:
+    Screen('Flip', theWindow)
+    Screen('Close', tex);
+end
+Screen('CloseMovie',moviePtr);
+end
+
+function showMath(mathType, secs, varargin)
+
+global theWindow 
+
+mathTxt = '38+67*2+12/3';%Temporally;
+t = GetSecs;
+while t-GetSecs > secs
+    DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
+    Screen('Flip', theWindow)
+end
+end
