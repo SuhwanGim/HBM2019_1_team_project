@@ -9,13 +9,12 @@ argTxt = {'test','fmri','biopac'};
 [ts, TR] = generate_exp_cond();
 %% ===================================================================== %%
 
-% ------------ BEFORE YOU START EXPERIMENT,                    ---------- %
+%              BEFORE YOU START EXPERIMENT,                               %
 
-% ------------ PLEASE, CHECKT OUT YOUR AN "EXPERIMENT SETTINGS" --------- %
+%              PLEASE, CHECKT OUT YOUR AN "EXPERIMENT SETTINGS"           %
 
 % ======================================================================= %
 %% RUN
-%
 main_task(SID,ts, 1, argTxt);
 %%
 main_task(SID,ts, 2, argTxt);

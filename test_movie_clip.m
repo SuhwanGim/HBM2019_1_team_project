@@ -12,7 +12,9 @@
 % Screen('AddAudioBufferToMovie', moviePtr, audioBuffer);
 
 %% Examples
-% SETUP: SCREEN
+%moviefile = fullfile(pwd,'examples1.mov');
+moviefile = '/Users/WIWIFH/Dropbox/github/experiment/movie_clips/N2.mp4';
+%% SETUP: SCREEN
 Screen('Clear');
 Screen('CloseAll');
 window_num = 0; %default
@@ -21,7 +23,7 @@ fontsize = 20;
 % color
 bgcolor = 80; 
 white = 255;
-% OPEN: SCREEN
+%% OPEN: SCREEN
 theWindow = Screen('OpenWindow', window_num, bgcolor, window_rect); % start the screen
 Screen('Preference','TextEncodingLocale','ko_KR.UTF-8'); % text encoding
 Screen('Preference', 'SkipSyncTests', 1)
@@ -36,10 +38,11 @@ try
     % MOVIE
 
     
-    moviefile = fullfile(pwd,'examples1.mov');
-    moviePtr=Screen('OpenMovie', theWindow, moviefile);
+    
+    [moviePtr,dur]=Screen('OpenMovie', theWindow, moviefile);
     Screen('PlayMovie', moviePtr, 1); %Screen('PlayMovie?')% 0 == Stop playback, 1 == Normal speed forward, -1 == Normal speed backward,
-    while ~KbCheck
+    t = GetSecs;
+    while (GetSecs - t) < dur
         % Wait for next movie frame, retrieve texture handle to it
         tex = Screen('GetMovieImage', theWindow, moviePtr);
         Screen('DrawTexture', theWindow, tex);

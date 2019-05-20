@@ -35,7 +35,8 @@ function main_task(SID,ts, runNumber, varargin)
 testmode = false;
 USE_BIOPAC = false;
 dofmri = false;
-start_trial = 1;
+%start_trial = 1;
+iscomp = 3; % default: macbook keyboard
 for i = 1:length(varargin)
     if ischar(varargin{i})
         switch varargin{i}
@@ -50,6 +51,10 @@ for i = 1:length(varargin)
                 ljHandle = BIOPAC_setup(channel_n); % BIOPAC SETUP
 %             case {'eyelink', 'eye', 'eyetrack'}
 %                 USE_EYELINK = true;
+            case {'macbook'}
+                iscomp = 3;
+            case {'imac'}
+                iscomp = 1;
         end
     end
 end
@@ -72,7 +77,35 @@ dat.starttime_getsecs = GetSecs; % in the same format of timestamps for each tri
 dat.runNumber = runNumber;
 dat.ts = ts;
 save(dat.datafile,'dat');
-%% SETUP: IO
+%% SETUP: External device name for matching
+% ===== Experimenter
+if iscomp == 1
+    device(1).product = 'Apple Keyboard';   % imac scanner (full keyboard)
+    device(1).vendorID= 1452;
+elseif iscomp == 2
+    device(1).product = 'Magic Keyboard';   % imac vcnl (short keyboard)
+    device(1).vendorID= 1452;
+elseif iscomp == 3
+    device(1).product = 'Apple Internal Keyboard / Trackpad';   % macbook
+    device(1).vendorID= 1452;
+% elseif iscomp == 4
+%     device(1).product = 'Magic Keyboard';         % my pc
+%     device(1).vendorID = 1452;
+end
+
+% ===== Participant's button box
+device(2).product = '932';
+device(2).vendorID= [1240 6171];
+    
+Participant  = IDKeyboards(device(2));
+
+while(1)
+      [keyIsDown, t1, keyCode, deltaSecs] = KbCheck(Participant);
+end
+
+% ===== Scanner
+device(3).product = 'KeyWarrior8 Flex';
+device(3).vendorID= 1984;
 
 %% SETUP: Screen
 Screen('Clear');
@@ -174,45 +207,67 @@ try
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
         
-    
-    %% START: EXPERIMENT  
+    %% ========================================================= %
+    %                   TRIAL START
+    % ========================================================== %
     dat.RunStartTime = GetSecs;
-    for trial_i = start_trial:10
+    for trial_i = (runNumber*2-1):(runNumber*2) % start_trial:10
+        movie_files = [];
         % Start of Trial
         trial_t = GetSecs;
         dat.dat{trial_i}.TrialStartTimestamp=trial_t; 
-        % 1. ITI
+        % --------------------------------------------------------- %
+        %         1. ITI
+        % --------------------------------------------------------- %
         fixPoint(trial_t, ts.ITI(trial_i,1), white, '+') % ITI
         dat.dat{trial_i}.ITI_EndTime=GetSecs; 
-        % 2. MOVIE CLIP
-        moive_files(trial_i) = fullfile(pwd,'examples1.mov');
-        run_movie(moive_files(trial_i));
+        
+        % --------------------------------------------------------- %
+        %         2. MOVIE CLIP
+        % --------------------------------------------------------- %
+        %moive_files(trial_i) = fullfile(pwd,'examples1.mov');
+        movie_files = ts.mv_name{trial_i};
+        run_movie(movie_files);
         dat.dat{trial_i}.Movie_EndTime=GetSecs; 
-        % 3. ISI1
+        
+        % --------------------------------------------------------- %
+        %         3. ISI1
+        % --------------------------------------------------------- %
         fixPoint(trial_t, ts.ITI(trial_i,2), white, '+') % ITI
         dat.dat{trial_i}.ISI1_EndTime=GetSecs; 
-        % 4. MATH PROBLEM 
-        showMath
+        
+        % --------------------------------------------------------- %
+        %         4. MATH PROBLEM 
+        % --------------------------------------------------------- %
+        showMath(ts.math_cond, secs);
         dat.dat{trial_i}.Math_EndTime=GetSecs; 
-        % 5. ISI2
+        
+        % --------------------------------------------------------- %
+        %         5. ISI2
+        % --------------------------------------------------------- %
         fixPoint(trial_t, ts.ITI(trial_i,3), white, '+') % ITI
         dat.dat{trial_i}.ISI2_EndTime=GetSecs; 
-        % 6. Short Quiz
+        
+        % --------------------------------------------------------- %
+        %         6. Short Quiz
+        % --------------------------------------------------------- %
         
         dat.dat{trial_i}.ShortQuiz_EndTime=GetSecs; 
-        % 7. ISI3
+        % --------------------------------------------------------- %
+        %         7. ISI3
+        % --------------------------------------------------------- %
         fixPoint(trial_t, ts.ITI(trial_i,4), white, '+') % ITI
         dat.dat{trial_i}.ISI3_EndTime=GetSecs; 
+
+        % --------------------------------------------------------- %
         % 8. REPORT level of stress  (one to ten)
+        % --------------------------------------------------------- %
         
         dat.dat{trial_i}.ReportStress_EndTime=GetSecs;         
         % End of trial
         dat.dat{trial_i}.TrialEndTimestamp=GetSecs; 
         save(dat.datafile, '-append', 'dat');
     end
-        
-    
-    
     
     %% FINALZING EXPERIMENT    
     dat.RunEndTime = GetSecs;
@@ -270,6 +325,7 @@ end
 % ======================================================================= %
 %                   IN-LINE FUNCTION                                      %
 % ======================================================================= %
+
 function display_runmessage(run_i, run_num, dofmri)
 
 % MESSAGE FOR EACH RUN
@@ -374,14 +430,17 @@ end
 Screen('CloseMovie',moviePtr);
 end
 
-function showMath(mathType, secs, varargin)
+function showMath(mathTxt, secs, varargin)
 
 global theWindow 
 
-mathTxt = '38+67*2+12/3';%Temporally;
+%mathTxt = '38+67*2+12/3';%Temporally;
 t = GetSecs;
+
 while t-GetSecs > secs
+    % Draw quiz
     DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
+    % Draw scale
     Screen('Flip', theWindow)
 end
 end
