@@ -37,6 +37,7 @@ USE_BIOPAC = false;
 dofmri = false;
 %start_trial = 1;
 iscomp = 3; % default: macbook keyboard
+
 for i = 1:length(varargin)
     if ischar(varargin{i})
         switch varargin{i}
@@ -44,17 +45,18 @@ for i = 1:length(varargin)
                 testmode = true;
             case {'fmri'}
                 dofmri = true;
-            case {'biopac','Biopac','BIOPAC','bio','BIopac'}
-                USE_BIOPAC = true;
-                channel_n = 3;
-                biopac_channel = 0;
-                ljHandle = BIOPAC_setup(channel_n); % BIOPAC SETUP
+%             case {'biopac','Biopac','BIOPAC','bio','BIopac'}
+%                 USE_BIOPAC = true;
+%                 channel_n = 3;
+%                 biopac_channel = 0;
+%                 ljHandle = BIOPAC_setup(channel_n); % BIOPAC SETUP
 %             case {'eyelink', 'eye', 'eyetrack'}
 %                 USE_EYELINK = true;
             case {'macbook'}
                 iscomp = 3;
             case {'imac'}
                 iscomp = 1;
+           
         end
     end
 end
@@ -64,6 +66,7 @@ global theWindow W H window_num; % window property
 global white red red_Alpha orange bgcolor yellow; % color
 global window_rect % rating scale
 global fontsize;
+global Participant; % response box
 %% SETUP: DATA and Subject INFO
 savedir = 'results_data';
 [fname,start_trial, SID] = subjectinfo_check(SID,runNumber,savedir); % subfunction %start_trial
@@ -99,14 +102,16 @@ device(2).vendorID= [1240 6171];
     
 Participant  = IDKeyboards(device(2));
 
-while(1)
-      [keyIsDown, t1, keyCode, deltaSecs] = KbCheck(Participant);
-end
+%while(1)
+%      [keyIsDown, t1, keyCode, deltaSecs] = KbCheck(Participant);
+%end
 
-% ===== Scanner
+% ===== Scanner trigger 
 device(3).product = 'KeyWarrior8 Flex';
 device(3).vendorID= 1984;
 
+% Getkeyborad
+% PsychHID('kbwait'm,
 %% SETUP: Screen
 Screen('Clear');
 Screen('CloseAll');
@@ -151,7 +156,7 @@ try
         elseif keyCode(KbName('q'))==1
             abort_experiment;
         end
-        display_expmessage('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (PATHWAY, BIOPAC, 등등). \n모두 준비되었으면 SPACE BAR를 눌러주세요.'); % until space; see subfunctions
+        display_expmessage('Check out all stuffs (Trigger, USB, etc). \n If all ready, press (SPACE BAR) button.'); % until space; see subfunctions
     end
     
     % 1 seconds: BIOPAC
@@ -181,7 +186,7 @@ try
         fmri_t = GetSecs;
         % gap between 5 key push and the first stimuli (disdaqs: dat.disdaq_sec)        
         Screen(theWindow, 'FillRect', bgcolor, window_rect);
-        DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
+        DrawFormattedText(theWindow, double('Experiment will start soon.'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
         Screen('Flip', theWindow);
         dat.runscan_starttime = GetSecs;
         waitsec_fromstarttime(fmri_t, 4);
@@ -288,9 +293,9 @@ try
     waitsec_fromstarttime(GetSecs, 2);
     %% END MESSAGE
     if runNumber == 5
-        str = '실험이 종료되었습니다.\n 잠시만 기다려주세요 (space)';
+        str = 'Experiment is over.\n Please, wait for seconds.  (space).';
     else
-        str = '잠시만 기다려주세요 (space)';
+        str = 'Please, wait for seconds (space)';
     end
     display_expmessage(str);
     
@@ -306,8 +311,9 @@ try
     
     ShowCursor();
     Screen('Clear');
-    Screen('CloseAll');
     
+    Screen('CloseAll');
+    IOport('CloseALL');
     
 catch
     % ERROR
@@ -336,11 +342,11 @@ global theWindow white bgcolor window_rect; % rating scale
 
 if dofmri
     if run_i <= run_num % you can customize the run start message using run_num and run_i
-        Run_start_text = double('참가자가 준비되었으면 이미징을 시작합니다 (s).');
+        Run_start_text = double('If participant ready, start scanning (s).');
     end
 else
     if run_i <= run_num
-        Run_start_text = double('참가자가 준비되었으면, r을 눌러주세요.');
+        Run_start_text = double('If participant ready, press (r) button.');
     end
 end
 
@@ -379,7 +385,7 @@ disp(str); %present this text in command window
 end
 
 function display_expmessage(msg)
-% diplay_expmessage("ad;slkja;l�Ҷ�Ҷ� \n���Ӥ��ո�����");
+% diplay_expmessage("");
 % type each MESSAGE
 
 global theWindow white bgcolor window_rect; % rating scale
@@ -403,22 +409,28 @@ waitsec_fromstarttime(t_time, seconds);
 end
 
 
-function run_movie(moviefile,varargin)
+function [starttime, endtime] = run_movie(moviefile,varargin)
 
+% moviefile: fullpath of movie file
 global theWindow 
 %moviefile = fullfile(pwd,'examples1.mov');
 playmode =1;
 
+%
+starttime = GetSecs;
+%
 [moviePtr, dura] = Screen('OpenMovie', theWindow, moviefile);
+Screen('SetMovieTimeIndex', moviePtr,0);
 Screen('PlayMovie', moviePtr, playmode); %Screen('PlayMovie?')% 0 == Stop playback, 1 == Normal speed forward, -1 == Normal speed backward,
-t = GetSecs; 
-while t-GetSecs > dura %~KbCheck
+t = GetSecs; done = 0;
+while t-GetSecs > dura %(~done) %~KbCheck
     % Wait for next movie frame, retrieve texture handle to it
     tex = Screen('GetMovieImage', theWindow, moviePtr);
     Screen('DrawTexture', theWindow, tex);
     % Valid texture returned? A negative value means end of movie reached:
     if tex<=0
         % We're done, break out of loop:
+        %done = 1;
         break;
     end
     
@@ -427,20 +439,44 @@ while t-GetSecs > dura %~KbCheck
     Screen('Flip', theWindow)
     Screen('Close', tex);
 end
+Screen('PlayMovie', moviePtr,0);
 Screen('CloseMovie',moviePtr);
+endtime = GetSecs;
 end
 
-function showMath(mathTxt, secs, varargin)
+function [keyCode, dura_t, starttime, endtime] = showMath(mathTxt, secs, varargin)
 
-global theWindow 
+global theWindow Participant white
 
 %mathTxt = '38+67*2+12/3';%Temporally;
-t = GetSecs;
-
-while t-GetSecs > secs
-    % Draw quiz
+t = GetSecs; starttime = t;
+while GetSecs - t < secs
+    % Draw quiz or import quiz
     DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
-    % Draw scale
+    
+    % Draw scale    
+    Screen('Flip', theWindow)
+    
+    
+    % options
+    
+    if GetSecs - t < secs
+        [keyIsDown, t1, keyCode, ~] = KbCheck(Participant);
+        
+        if keyIsDown
+            dura_t = t1 - t;
+            DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
+            Screen('Flip', theWindow)
+            break;
+            % get keycodes keyCode
+        end        
+    end
+    
+end
+
+while GetSecs - t < secs
+    DrawFormattedText(theWindow, ' ', 'center', 'center', white, [], [], [], 1.2); % null screen 
     Screen('Flip', theWindow)
 end
+endtime = GetSecs;
 end
