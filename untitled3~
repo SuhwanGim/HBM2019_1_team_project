@@ -1,0 +1,5 @@
+altSeq = a;
+total_str = [];
+for i=1:4
+    total_str = [total_str ['(' num2str(i) '): ' altSeq{i} '    ']];
+end

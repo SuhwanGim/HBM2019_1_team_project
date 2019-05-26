@@ -56,6 +56,7 @@ for i = 1:length(varargin)
                 iscomp = 3;
             case {'imac'}
                 iscomp = 1;
+            case {'button_box'}            
            
         end
     end
@@ -64,7 +65,7 @@ end
 %% GLOBAL vaiable
 global theWindow W H window_num; % window property
 global white red red_Alpha orange bgcolor yellow; % color
-global window_rect lb rb% rating scale
+global window_rect lb rb tb bb scale_H% rating scale
 global fontsize;
 global Participant; % response box
 %% SETUP: DATA and Subject INFO
@@ -96,40 +97,46 @@ elseif iscomp == 3
 %     device(1).vendorID = 1452;
 end
 
+
 % ===== Participant's button box
+% "HID KEY 12345"
 device(2).product = '932';
 device(2).vendorID= [1240 6171];
     
-Participant  = IDKeyboards(device(2));
+Participant  = IDkeyboards(device(2));
 
-%while(1)
-%      [keyIsDown, t1, keyCode, deltaSecs] = KbCheck(Participant);
-%end
 
 % ===== Scanner trigger 
 device(3).product = 'KeyWarrior8 Flex';
 device(3).vendorID= 1984;
-
-% Getkeyborad
-% PsychHID('kbwait'm,
+scanner = IDkeyboards(device(3));
+% % Getkeyborad
+% % PsychHID('kbwait'm,
 %% SETUP: Screen
 Screen('Clear');
 Screen('CloseAll');
 window_num = 0;
 if testmode
-    window_rect = [1 1 1280 720]; % in the test mode, use a little smaller screen [but, wide resoultions]    
-    fontsize = 20;
+    window_rect = [0 0 1600 900]; % in the test mode, use a little smaller screen [but, wide resoultions]    
+    Screen('Preference', 'SkipSyncTests', 1);
+    fontsize = 32;
 else
     screens = Screen('Screens');
     window_num = screens(end); % the last window
     Screen('Preference', 'SkipSyncTests', 1);
     window_info = Screen('Resolution', window_num);
-    window_rect = [0 0 window_info.width window_info.height]; % full screen
+    window_rect = [0 0 1920 1080];
+    %window_rect = [0 0 window_info.width window_info.height]; % full screen
     fontsize = 32;
     HideCursor();
 end
 W = window_rect(3); %width of screen
 H = window_rect(4); %height of screen
+
+
+tb = H/5+100;           % in 800, it's 310
+bb = H/2+100;           % in 800, it's 450, bb-tb = 340
+scale_H = (bb-tb).*0.25;
 
 % For overall rating scale
 lb = 5*W/18; %
@@ -144,13 +151,14 @@ yellow = [255 220 0];
 
 
 %% SETUP: Parameters
+font = 'NanumBarunGothic';
 stimText = '+';
 %% START: Screen
 theWindow = Screen('OpenWindow', window_num, bgcolor, window_rect); % start the screen
 Screen('Preference','TextEncodingLocale','ko_KR.UTF-8'); % text encoding
 Screen('BlendFunction', theWindow, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); % For using transparency e.g., alpha value of [R G B alpha]
 Screen('TextSize', theWindow, fontsize);
-
+Screen('TextFont', theWindow, font); % setting font
 try        
     %% SETUP: INSTRUCTION BEFORE START
     while (1)
@@ -160,21 +168,23 @@ try
         elseif keyCode(KbName('q'))==1
             abort_experiment;
         end
-        display_expmessage('Check out all stuffs (Trigger, USB, etc). \n If all ready, press (SPACE BAR) button.'); % until space; see subfunctions
+        display_expmessage('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Trigger, USB, etc). \n 모두 준비되었으면 SPACE BAR를 눌러주세요.'); % until space; see subfunctions
     end
     
     
     while (1)
-        [~,~,keyCode] = KbCheck;
+        
         % if this is for fMRI experiment, it will start with "s",
         % but if behavioral, it will start with "r" key.
-        if dofmri
+        if dofmri            
+            [~,~,keyCode] = KbCheck(scanner);
             if keyCode(KbName('s'))==1
                 break
             elseif keyCode(KbName('q'))==1
                 abort_experiment;
             end
-        else
+        else            
+            [~,~,keyCode] = KbCheck;
             if keyCode(KbName('r'))==1
                 break
             elseif keyCode(KbName('q'))==1
@@ -190,7 +200,7 @@ try
         fmri_t = GetSecs;
         % gap between 5 key push and the first stimuli (disdaqs: dat.disdaq_sec)        
         Screen(theWindow, 'FillRect', bgcolor, window_rect);
-        DrawFormattedText(theWindow, double('Experiment will start soon.'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
+        DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
         Screen('Flip', theWindow);
         dat.runscan_starttime = GetSecs;
         waitsec_fromstarttime(fmri_t, 4);
@@ -200,21 +210,7 @@ try
         Screen('Flip', theWindow);
         waitsec_fromstarttime(fmri_t, dat.disdaq_sec); % ADJUST THIS
     end
-    
-    % Turn on biopac signal % 1 seconds: BIOPAC 
-    if USE_BIOPAC
-        bio_t = GetSecs;
-        dat.biopac_triggertime = bio_t; %BIOPAC timestamp
-        BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        Screen(theWindow,'FillRect',bgcolor, window_rect);
-        Screen('Flip', theWindow);
-        waitsec_fromstarttime(bio_t, 2); % ADJUST THIS
-    end
-    
-    % Turn off biopac signal
-    if USE_BIOPAC
-        BIOPAC_trigger(ljHandle, biopac_channel, 'off');
-    end
+        
         
     %% ========================================================= %
     %                   TRIAL START
@@ -236,45 +232,47 @@ try
         % --------------------------------------------------------- %
         %moive_files(trial_i) = fullfile(pwd,'examples1.mov');
         movie_files = ts.mv_name{trial_i};
-        run_movie(movie_files);
+        [starttime, endtime] = run_movie(movie_files);
+        dat.dat{trial_i}.Movie_dura = endtime - starttime;
         dat.dat{trial_i}.Movie_EndTime=GetSecs; 
         
         % --------------------------------------------------------- %
         %         3. ISI1
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,2), white, '+') % ITI
+        fixPoint(trial_t, ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura , white, '+') % ITI
         dat.dat{trial_i}.ISI1_EndTime=GetSecs; 
         
         % --------------------------------------------------------- %
         %         4. MATH PROBLEM 
         % --------------------------------------------------------- %
         secs = 30;
-        [dat.dat{trial_i}.math_response_keyCode, dat.dat{trial_i}.math_duration, dat.dat{trial_i}.Math_StartTime, dat.dat{trial_i}.Math_EndTime] ...
-            = showMath(ts.math_img{trial_i}, secs); % showMath(mathpath, secs, varargin)
+        [dat.dat{trial_i}.math_response_keyCode, dat.dat{trial_i}.Movie_dura, dat.dat{trial_i}.Math_StartTime, dat.dat{trial_i}.Math_EndTime] ...
+            = showMath(ts.math_img{trial_i}, ts.math_alt(trial_i,:), secs); % showMath(mathpath, secs, varargin)
         %dat.dat{trial_i}.Math_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
         %         5. ISI2
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,3), white, '+') % ITI
+        fixPoint(trial_t, ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura + dat.dat{trial_i}.Movie_dura , white, '+') % ITI
         dat.dat{trial_i}.ISI2_EndTime=GetSecs; 
         
         % --------------------------------------------------------- %
         %         6. Resting-state
         % --------------------------------------------------------- %
         %fixPoint(trial_t, ts.ITI(trial_i,3), white, '+') % ITI
-        dat.dat{trial_i}.resting_EndTime=GetSecs; 
+        resting_time();
+        dat.dat{trial_i}.resting_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
         %         7. ISI3
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,4), white, '+') % ITI
+        fixPoint(trial_t, ts.ITI(trial_i,4)+ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura + dat.dat{trial_i}.Movie_dura +10, white, '+') % ITI
         dat.dat{trial_i}.ISI3_EndTime=GetSecs; 
         
         % --------------------------------------------------------- %
         %         8. Short Quiz
         % --------------------------------------------------------- %
-        
+        [starttime, reseponse , dura_t, endtime] = movie_quiz(ts.quiz_cond{trial_i});
         dat.dat{trial_i}.ShortQuiz_EndTime=GetSecs; 
         % --------------------------------------------------------- %
         %         9. ISI4
@@ -287,7 +285,10 @@ try
         % --------------------------------------------------------- %
         
         dat.dat{trial_i}.ReportStress_EndTime=GetSecs;         
-        % End of trial
+        
+        % -----------------%
+        %  End of trial (save data)
+        % -----------------%
         dat.dat{trial_i}.TrialEndTimestamp=GetSecs; 
         save(dat.datafile, '-append', 'dat');
     end
@@ -297,23 +298,14 @@ try
     DrawFormattedText(theWindow, double(stimText), 'center', 'center', white, [], [], [], 1.2);
     Screen('Flip', theWindow);
     
-    waitsec_fromstarttime(t_time, 10);      
-    save(dat.datafile, '-append', 'dat');
-    
-    if USE_BIOPAC %end BIOPAC
-        bio_t = GetSecs;
-        dat.biopac_endtime = bio_t;% biopac end timestamp
-        BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(bio_t, 0.2);
-        BIOPAC_trigger(ljHandle, biopac_channel, 'off');
-    end
+    waitsec_fromstarttime(dat.RunEndTime, 10);              
     save(dat.datafile, '-append', 'dat');
     waitsec_fromstarttime(GetSecs, 2);
     %% END MESSAGE
     if runNumber == 5
-        str = 'Experiment is over.\n Please, wait for seconds.  (space).';
+        str = '실험이 종료되었습니다.\n 잠시만 기다려주세요 (space)';
     else
-        str = 'Please, wait for seconds (space)';
+        str = '잠시만 기다려주세요 (space)';
     end
     display_expmessage(str);
     
@@ -333,7 +325,7 @@ try
     Screen('CloseAll');
     IOport('CloseALL');
     
-catch
+catch err
     % ERROR
     disp(err);
     ShowCursor();
@@ -360,11 +352,11 @@ global theWindow white bgcolor window_rect; % rating scale
 
 if dofmri
     if run_i <= run_num % you can customize the run start message using run_num and run_i
-        Run_start_text = double('If participant ready, start scanning (s).');
+        Run_start_text = double('참가자가 준비되었으면 이미징을 시작합니다 (s).');
     end
 else
     if run_i <= run_num
-        Run_start_text = double('If participant ready, press (r) button.');
+        Run_start_text = double('참가자가 준비되었으면, r을 눌러주세요.');
     end
 end
 
@@ -431,12 +423,12 @@ waitsec_fromstarttime(t_time, seconds);
 end
 
 
-function [starttime, endtime] = run_movie(moviefile,varargin)
+function [starttime, endtime] = run_movie(moviefile)
 
 % moviefile: fullpath of movie file
 global theWindow 
 %moviefile = fullfile(pwd,'examples1.mov');
-playmode =1;
+playmode = 1;
 
 %
 starttime = GetSecs;
@@ -444,11 +436,13 @@ starttime = GetSecs;
 [moviePtr, dura] = Screen('OpenMovie', theWindow, moviefile);
 Screen('SetMovieTimeIndex', moviePtr,0);
 Screen('PlayMovie', moviePtr, playmode); %Screen('PlayMovie?')% 0 == Stop playback, 1 == Normal speed forward, -1 == Normal speed backward,
-t = GetSecs; done = 0;
-while t-GetSecs > dura %(~done) %~KbCheck
+t = GetSecs; 
+while GetSecs-t < dura %(~done) %~KbCheck
     % Wait for next movie frame, retrieve texture handle to it
     tex = Screen('GetMovieImage', theWindow, moviePtr);
     Screen('DrawTexture', theWindow, tex);
+    Screen('Flip', theWindow)
+    Screen('Close', tex);
     % Valid texture returned? A negative value means end of movie reached:
     if tex<=0
         % We're done, break out of loop:
@@ -458,44 +452,59 @@ while t-GetSecs > dura %(~done) %~KbCheck
     
     
     % Update display:
-    Screen('Flip', theWindow)
-    Screen('Close', tex);
+    
 end
 Screen('PlayMovie', moviePtr,0);
 Screen('CloseMovie',moviePtr);
 endtime = GetSecs;
 end
 
-function [keyCode, dura_t, starttime, endtime] = showMath(mathpath, secs)
+function [response, dura_t, starttime, endtime] = showMath(mathpath, math_alt, secs)
 
 
 global theWindow Participant white
+global lb rb tb bb scale_H
+t = GetSecs; starttime = t;
 
 % read read ima
 ima=imread(mathpath);
+% read alt
+altSeq = math_alt;
+total_str = [];
+for i=1:4
+    total_str = [total_str ['(' num2str(i) '): ' altSeq{i} '    ']];
+end
+ 
 
-t = GetSecs; starttime = t;
 
 while GetSecs - t < secs
-    % Draw quiz or import quiz
-    % DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
-    Screen('PutImage', theWindow, ima); % put image on screen
-    % Draw scale    
-    Screen('Flip', theWindow)
-    
     
     % options
-    
-    if GetSecs - t < secs
-        [keyIsDown, t1, keyCode, ~] = KbCheck(Participant);
+    [~, t1, keyCode, ~] = KbCheck(Participant);
+    if GetSecs - t > 10 % of 30secs
+        % Draw quiz         
+        Screen('PutImage', theWindow, ima); % put image on screen
+        DrawFormattedText(theWindow, double(total_str), 'center', bb+200, white, [], [], [], 1.2); % 4 seconds
+        Screen('Flip', theWindow)        
+                 
         
-        if keyIsDown
+        if (keyCode(KbName('1!')) || keyCode(KbName('2@')) || keyCode(KbName('3#')) || keyCode(KbName('4$'))) == 1
             dura_t = t1 - t;
             %DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
-            Screen('Flip', theWindow)
+            response = KbName(keyCode);
+            Screen('Flip', theWindow);            
             break;
             % get keycodes keyCode
-        end        
+        else 
+            response = 0;
+            dura_t = 0;
+        end
+    else
+        % Draw img
+        Screen('PutImage', theWindow, ima); % put image on screen
+        % Draw scale
+        Screen('Flip', theWindow)
+        
     end
     
 end
@@ -504,17 +513,18 @@ while GetSecs - t < secs
     DrawFormattedText(theWindow, ' ', 'center', 'center', white, [], [], [], 1.2); % null screen 
     Screen('Flip', theWindow)
 end
+
 endtime = GetSecs;
 end
+
 
 function [starttime, endtime] = resting_time()
 
 global theWindow 
 starttime = GetSecs;
-img = fullfile('/Users/WIWIFH/Dropbox/github/experiment/HBM2019_1_team_project/stimuli/resting.png');
-ima=imread(img);
-%DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
-Screen('PutImage', theWindow, ima); % put image on screen
+
+DrawFormattedText(theWindow, double('퀴즈 전 쉬는 시간: 10초'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
+%Screen('PutImage', theWindow, ima); % put image on screen
 Screen('Flip', theWindow)
 
 while GetSecs - starttime < 10
@@ -522,4 +532,55 @@ while GetSecs - starttime < 10
 end
 
 endtime = GetSecs;
+end
+
+function [starttime, response , dura_t, endtime] = movie_quiz(img)
+
+global theWindow Participant white
+global lb rb tb bb scale_H
+t = GetSecs; starttime = t;
+
+% read read ima
+ima=imread(img);
+secs = 5;
+while GetSecs - t < secs
+    
+    % options
+    [~, t1, keyCode, ~] = KbCheck(Participant);
+    
+    % Draw quiz
+    Screen('PutImage', theWindow, ima); % put image on screen    
+    Screen('Flip', theWindow)
+    
+    
+    if (keyCode(KbName('1!')) || keyCode(KbName('2@')) || keyCode(KbName('3#')) || keyCode(KbName('4$'))) == 1
+        dura_t = t1 - t;
+        %DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
+        response = KbName(keyCode);
+        Screen('Flip', theWindow);
+        break;
+        % get keycodes keyCode
+    else
+        response = 0;
+        dura_t = 0;
+    end
+    
+    
+    
+end
+
+
+
+while GetSecs - t < secs
+    DrawFormattedText(theWindow, ' ', 'center', 'center', white, [], [], [], 1.2); % null screen
+    Screen('Flip', theWindow)
+end
+
+endtime = GetSecs;
+
+end
+
+
+function [starttime, reseponse , dura_t, endtime] = stressResponse()
+
 end

@@ -15,12 +15,12 @@ argTxt = {'test','fmri'};
 
 % ======================================================================= %
 %% RUN
-main_task(SID,ts, 1, argTxt,'macbook');
+main_task(SID,ts, 1, 'test','fmri','macbook');
 %%
-main_task(SID,ts, 2, argTxt,'macbook');
+main_task(SID,ts, 2, 'test','fmri','macbook');
 %%
-main_task(SID,ts, 3, argTxt,'macbook');
+main_task(SID,ts, 3, 'test','fmri','macbook');
 %%
-main_task(SID,ts, 4, argTxt,'macbook');
+main_task(SID,ts, 4, 'test','fmri','macbook');
 %%
-main_task(SID,ts, 5, argTxt,'macbook');
+main_task(SID,ts, 5, 'test','fmri','macbook');
