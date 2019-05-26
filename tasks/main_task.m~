@@ -511,15 +511,10 @@ function [starttime, endtime] = resting_time()
 
 global theWindow 
 starttime = GetSecs;
-img = fullfile('/Users/WIWIFH/Dropbox/github/experiment/HBM2019_1_team_project/stimuli/resting.png');
-ima=imread(img);
 %DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
 Screen('PutImage', theWindow, ima); % put image on screen
-Screen('Flip', theWindow)
 
-while GetSecs - starttime < 10
-    % 
-end
+Screen('Flip', theWindow)
 
 endtime = GetSecs;
 end

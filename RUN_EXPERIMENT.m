@@ -5,7 +5,7 @@ clc; clear;
 addpath(genpath(pwd));
 %% SETTINGS: Subject name and optional input
 SID = 'EST001'; % SID = 'TEST';
-argTxt = {'test','fmri','biopac'};
+argTxt = {'test','fmri'};
 [ts, TR] = generate_exp_cond();
 %% ===================================================================== %%
 
