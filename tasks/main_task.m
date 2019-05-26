@@ -1,6 +1,7 @@
 function main_task(SID,ts, runNumber, varargin)
 % 
-%   ** Descrip ** 
+%   ** DESCRIPTION ** 
+%
 % This function is for running experimental paradigm (Post-encoding stress
 % effect on episodic memory). The four steps is included here. 
 % (disdaq = 10 secs).
@@ -10,30 +11,24 @@ function main_task(SID,ts, runNumber, varargin)
 %    3) Report: level of stress and quiz for previous movie clips
 %
 %   ** Requirements **
-%    1) Latest PsychophysicsToolbox
-%    2) Mac OS 
-%   ** (optional)
-%    3) Labjack driver (for biopac)
-%
-%
+%    1) Latest version PsychophysicsToolbox3
+%    2) Mac OS    
 %
 %   ====================================================================%
 %   ** Usage **
-%       main_task('EST001', 'fmri','biopac');
+%       main_task('EST001', 'fmri','test');
 %   ** Input **
 %       - SID: name of subject 
 %       - ts: trial sequencs
 %       - runNumber
 %   ** Optional Input **
-%       - 'test': Lower reslutions. (1280 720 px)
-%       - 'fmri': If you run this function in MRI settings. This option can
-%       receive 's' trigger from sync box.
-%       - 'biopac': For sending biopac sync signal. 
+%       - 'test': Lower reslutions. (1600 900 px)
+%       - 'fmri': If you run this script in MRI . This option can
+%       receive 's' trigger from sync box.   
 %   ====================================================================
 
 %% Parse varargin
 testmode = false;
-USE_BIOPAC = false;
 dofmri = false;
 %start_trial = 1;
 iscomp = 3; % default: macbook keyboard
@@ -45,13 +40,6 @@ for i = 1:length(varargin)
                 testmode = true;
             case {'fmri'}
                 dofmri = true;
-%             case {'biopac','Biopac','BIOPAC','bio','BIopac'}
-%                 USE_BIOPAC = true;
-%                 channel_n = 3;
-%                 biopac_channel = 0;
-%                 ljHandle = BIOPAC_setup(channel_n); % BIOPAC SETUP
-%             case {'eyelink', 'eye', 'eyetrack'}
-%                 USE_EYELINK = true;
             case {'macbook'}
                 iscomp = 3;
             case {'imac'}
@@ -70,7 +58,7 @@ global fontsize;
 global Participant; % response box
 %% SETUP: DATA and Subject INFO
 savedir = 'results_data';
-[fname,start_trial, SID] = subjectinfo_check(SID,runNumber,savedir); % subfunction %start_trial
+[fname,~, SID] = subjectinfo_check(SID,runNumber,savedir); % subfunction %start_trial
 if exist(fname, 'file'), load(fname); end
 % save data using the canlab_dataset object  % ??
 dat.version = 'EPST_v1_05-18-2019_Suhwan';
@@ -92,9 +80,9 @@ elseif iscomp == 2
 elseif iscomp == 3
     device(1).product = 'Apple Internal Keyboard / Trackpad';   % macbook
     device(1).vendorID= 1452;
-% elseif iscomp == 4
-%     device(1).product = 'Magic Keyboard';         % my pc
-%     device(1).vendorID = 1452;
+elseif iscomp == 4
+    device(1).product = 'Magic Keyboard';         % my pc
+    device(1).vendorID = 1452;
 end
 
 
@@ -110,8 +98,7 @@ Participant  = IDkeyboards(device(2));
 device(3).product = 'KeyWarrior8 Flex';
 device(3).vendorID= 1984;
 scanner = IDkeyboards(device(3));
-% % Getkeyborad
-% % PsychHID('kbwait'm,
+
 %% SETUP: Screen
 Screen('Clear');
 Screen('CloseAll');
@@ -271,13 +258,16 @@ try
         
         % --------------------------------------------------------- %
         %         8. Short Quiz
-        % --------------------------------------------------------- %
-        [starttime, reseponse , dura_t, endtime] = movie_quiz(ts.quiz_cond{trial_i});
-        dat.dat{trial_i}.ShortQuiz_EndTime=GetSecs; 
+        % --------------------------------------------------------- %        
+        [starttime, response , dura_t, endtime] = movie_quiz(ts.quiz_cond{trial_i});
+        dat.dat{trial_i}.ShortQuiz_response = response;
+        dat.dat{trial_i}.ShortQuiz_response_duration = dura_t;
+        dat.dat{trial_i}.ShortQuiz_Dration = endtime - starttime;
+        dat.dat{trial_i}.ShortQuiz_EndTime = GetSecs; 
         % --------------------------------------------------------- %
         %         9. ISI4
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,5), white, '+') % ITI
+        fixPoint(trial_t, ts.ITI(trial_i,5) + ts.ITI(trial_i,4)+ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura + dat.dat{trial_i}.Movie_dura +10, white, '+') % ITI
         dat.dat{trial_i}.ISI4_EndTime=GetSecs; 
 
         % --------------------------------------------------------- %
@@ -286,11 +276,13 @@ try
         
         dat.dat{trial_i}.ReportStress_EndTime=GetSecs;         
         
-        % -----------------%
-        %  End of trial (save data)
-        % -----------------%
+        % ------------------------------------ %
+        %  End of trial (save data) 5 secs
+        % ------------------------------------ %
+        
         dat.dat{trial_i}.TrialEndTimestamp=GetSecs; 
         save(dat.datafile, '-append', 'dat');
+        waitsec_fromstarttime(dat.dat{trial_i}.TrialEndTimestamp,5);
     end
     
     %% FINALZING EXPERIMENT    
@@ -563,10 +555,7 @@ while GetSecs - t < secs
     else
         response = 0;
         dura_t = 0;
-    end
-    
-    
-    
+    end       
 end
 
 

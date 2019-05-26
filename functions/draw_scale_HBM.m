@@ -13,8 +13,6 @@ global fontsize anchor_y anchor_y2 anchor anchor_xl anchor_xr anchor_yu anchor_y
 xy = [lb lb lb rb rb rb; H/2 H/2+scale_H H/2+scale_H/2 H/2+scale_H/2 H/2 H/2+scale_H];
 Screen(theWindow,'DrawLines', xy, 5, 255);
 Screen(theWindow,'DrawText','0',lb-10,anchor_y,255);
-% Screen(theWindow,'DrawText','at all',lb-50,anchor_y2,255);
-% Screen(theWindow,'DrawText','Worst',rb-50,anchor_y,255);
 Screen(theWindow,'DrawText','100',rb-10,anchor_y2,255);
 DrawFormattedText(theWindow, double('Level of stress'), 'center', 'center', white, [], [], [], 1.2);
 end
