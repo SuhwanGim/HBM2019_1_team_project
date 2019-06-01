@@ -203,7 +203,7 @@ try
     %                   TRIAL START
     % ========================================================== %
     dat.RunStartTime = GetSecs;
-    for trial_i = (runNumber*2-1):(runNumber*2) % start_trial:10
+    for trial_i = ((runNumber-1)*5+1):((runNumber)*5) % start_trial:30
         movie_files = [];
         % Start of Trial
         trial_t = GetSecs;
@@ -233,27 +233,27 @@ try
         %         4. MATH PROBLEM 
         % --------------------------------------------------------- %
         secs = 30;
-        [dat.dat{trial_i}.math_response_keyCode, dat.dat{trial_i}.Movie_dura, dat.dat{trial_i}.Math_StartTime, dat.dat{trial_i}.Math_EndTime] ...
+        [dat.dat{trial_i}.math_response_keyCode, dat.dat{trial_i}.math_dura, dat.dat{trial_i}.Math_StartTime, dat.dat{trial_i}.Math_EndTime] ...
             = showMath(ts.math_img{trial_i}, ts.math_alt(trial_i,:), secs); % showMath(mathpath, secs, varargin)
         %dat.dat{trial_i}.Math_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
         %         5. ISI2
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura + dat.dat{trial_i}.Movie_dura , white, '+') % ITI
+        fixPoint(trial_t, ts.ITI(trial_i,3)  + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.math_dura + dat.dat{trial_i}.Movie_dura , white, '+') % ITI
         dat.dat{trial_i}.ISI2_EndTime=GetSecs; 
         
         % --------------------------------------------------------- %
         %         6. Resting-state
         % --------------------------------------------------------- %
         %fixPoint(trial_t, ts.ITI(trial_i,3), white, '+') % ITI
-        resting_time();
+        resting_time(10);
         dat.dat{trial_i}.resting_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
         %         7. ISI3
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,4)+ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura + dat.dat{trial_i}.Movie_dura +10, white, '+') % ITI
+        fixPoint(trial_t, ts.ITI(trial_i,4)+ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.math_dura + dat.dat{trial_i}.Movie_dura +10, white, '+') % ITI
         dat.dat{trial_i}.ISI3_EndTime=GetSecs; 
         
         % --------------------------------------------------------- %
@@ -267,7 +267,7 @@ try
         % --------------------------------------------------------- %
         %         9. ISI4
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,5) + ts.ITI(trial_i,4)+ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura + dat.dat{trial_i}.Movie_dura +10, white, '+') % ITI
+        fixPoint(trial_t, ts.ITI(trial_i,5) + ts.ITI(trial_i,4)+ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.math_dura + dat.dat{trial_i}.Movie_dura +10, white, '+') % ITI
         dat.dat{trial_i}.ISI4_EndTime=GetSecs; 
 
         % --------------------------------------------------------- %
@@ -294,7 +294,7 @@ try
     save(dat.datafile, '-append', 'dat');
     waitsec_fromstarttime(GetSecs, 2);
     %% END MESSAGE
-    if runNumber == 5
+    if runNumber == 6
         str = '실험이 종료되었습니다.\n 잠시만 기다려주세요 (space)';
     else
         str = '잠시만 기다려주세요 (space)';
@@ -314,8 +314,7 @@ try
     ShowCursor();
     Screen('Clear');
     
-    Screen('CloseAll');
-    IOport('CloseALL');
+    Screen('CloseAll');    
     
 catch err
     % ERROR
@@ -472,7 +471,7 @@ end
 while GetSecs - t < secs
     
     % options
-    [~, t1, keyCode, ~] = KbCheck(Participant);
+    [kk, t1, keyCode, ~] = KbCheck(Participant);
     if GetSecs - t > 10 % of 30secs
         % Draw quiz         
         Screen('PutImage', theWindow, ima); % put image on screen
@@ -480,10 +479,10 @@ while GetSecs - t < secs
         Screen('Flip', theWindow)        
                  
         
-        if (keyCode(KbName('1!')) || keyCode(KbName('2@')) || keyCode(KbName('3#')) || keyCode(KbName('4$'))) == 1
+        if kk%(keyCode(KbName('1!')) || keyCode(KbName('2@')) || keyCode(KbName('3#')) || keyCode(KbName('4$')) || keyCode(KbName('1')) || keyCode(KbName('2')) || keyCode(KbName('3')) || keyCode(KbName('4'))) == 1
             dura_t = t1 - t;
             %DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
-            response = KbName(keyCode);
+            response = KbName(find(keyCode));
             Screen('Flip', theWindow);            
             break;
             % get keycodes keyCode
@@ -510,16 +509,16 @@ endtime = GetSecs;
 end
 
 
-function [starttime, endtime] = resting_time()
+function [starttime, endtime] = resting_time(secs)
 
-global theWindow 
+global theWindow white
 starttime = GetSecs;
 
 DrawFormattedText(theWindow, double('퀴즈 전 쉬는 시간: 10초'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
 %Screen('PutImage', theWindow, ima); % put image on screen
 Screen('Flip', theWindow)
 
-while GetSecs - starttime < 10
+while GetSecs - starttime < secs
     % 
 end
 
@@ -534,21 +533,22 @@ t = GetSecs; starttime = t;
 
 % read read ima
 ima=imread(img);
-secs = 5;
+secs = 10;
 while GetSecs - t < secs
     
     % options
-    [~, t1, keyCode, ~] = KbCheck(Participant);
+    [kk, t1, keyCode, ~] = KbCheck(Participant);
     
     % Draw quiz
     Screen('PutImage', theWindow, ima); % put image on screen    
     Screen('Flip', theWindow)
     
     
-    if (keyCode(KbName('1!')) || keyCode(KbName('2@')) || keyCode(KbName('3#')) || keyCode(KbName('4$'))) == 1
+    %if (keyCode(KbName('1!')) || keyCode(KbName('2@')) || keyCode(KbName('3#')) || keyCode(KbName('4$')) || keyCode(KbName('1')) || keyCode(KbName('2')) || keyCode(KbName('3')) || keyCode(KbName('4'))) == 1
+    if kk
         dura_t = t1 - t;
         %DrawFormattedText(theWindow, double(mathTxt), 'center', 'center', white, [], [], [], 1.2); % 4 seconds
-        response = KbName(keyCode);
+        response = KbName(find(keyCode));
         Screen('Flip', theWindow);
         break;
         % get keycodes keyCode
