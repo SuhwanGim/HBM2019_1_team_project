@@ -1,4 +1,4 @@
- %% load data 
+%% load data 
 basedir = '/Users/WIWIFH/Dropbox/github/experiment/HBM2019_1_team_project/results_data';
 total_dat = []; 
 for sub_i=1:2
@@ -41,8 +41,8 @@ for sub_i = 1:2
         
         
     end
-    dat{sub_i}(6,:) = ts{sub_i}.math_cond; %math quiz conditoin    (1 = Easy     / 2 = Difficulty);
-    dat{sub_i}(7,:) = ts{sub_i}.mv_cond; %movie condition          (1 = Postivie / 2 = Neutral);
+    dur_dat{sub_i}(6,:) = ts{sub_i}.math_cond; %math quiz conditoin    (1 = Easy     / 2 = Difficulty);
+    dur_dat{sub_i}(7,:) = ts{sub_i}.mv_cond; %movie condition          (1 = Postivie / 2 = Neutral);
 end
 %% Onsets
 % 1) movie start
@@ -65,12 +65,16 @@ for sub_i=1:2
     end
 end
 %plot(1:30,ons_dat{1} + dur_dat{1}(2:5,:),'o')
+%%
+
+save('onsets_duration.mat','dur_dat','ons_dat');
 %% Names  
 % 1) 
 name_dat = [];
 for sub_i =1:2
     if ts.math_cond 
-    name_dat{sub_i} = ts.
+    name_dat{sub_i} = ts
+    end
 end
 
     
