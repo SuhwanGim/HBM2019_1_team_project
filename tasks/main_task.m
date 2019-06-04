@@ -114,7 +114,7 @@ else
     window_info = Screen('Resolution', window_num);
     window_rect = [0 0 1920 1080];
     %window_rect = [0 0 window_info.width window_info.height]; % full screen
-    fontsize = 32;
+    fontsize = 36;
     HideCursor();
 end
 W = window_rect(3); %width of screen
@@ -165,9 +165,10 @@ try
         % but if behavioral, it will start with "r" key.
         if dofmri            
             [~,~,keyCode] = KbCheck(scanner);
+            [~,~,keyCode2] = KbCheck; % experiment
             if keyCode(KbName('s'))==1
                 break
-            elseif keyCode(KbName('q'))==1
+            elseif keyCode2(KbName('q'))==1
                 abort_experiment;
             end
         else            
@@ -204,6 +205,7 @@ try
     % ========================================================== %
     dat.RunStartTime = GetSecs;
     for trial_i = ((runNumber-1)*5+1):((runNumber)*5) % start_trial:30
+        
         movie_files = [];
         % Start of Trial
         trial_t = GetSecs;
@@ -224,23 +226,25 @@ try
         dat.dat{trial_i}.Movie_EndTime=GetSecs; 
         
         % --------------------------------------------------------- %
-        %         3. ISI1
+        %         3. ISI1  (ts.ITI(trial_i,2))
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura , white, '+') % ITI
+        ttp = ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura;
+        fixPoint(trial_t, ttp , white, '+') % ITI
         dat.dat{trial_i}.ISI1_EndTime=GetSecs; 
         
         % --------------------------------------------------------- %
         %         4. MATH PROBLEM 
         % --------------------------------------------------------- %
         secs = 30;
-        [dat.dat{trial_i}.math_response_keyCode, dat.dat{trial_i}.math_dura, dat.dat{trial_i}.Math_StartTime, dat.dat{trial_i}.Math_EndTime] ...
+        [dat.dat{trial_i}.math_response_keyCode, dat.dat{trial_i}.rt, dat.dat{trial_i}.Math_StartTime, dat.dat{trial_i}.Math_EndTime] ...
             = showMath(ts.math_img{trial_i}, ts.math_alt(trial_i,:), secs); % showMath(mathpath, secs, varargin)
         %dat.dat{trial_i}.Math_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
-        %         5. ISI2
+        %         5. ISI2 ts.ITI(trial_i,3)
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,3)  + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.math_dura + dat.dat{trial_i}.Movie_dura , white, '+') % ITI
+        tts = ts.ITI(trial_i,3)  + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura + secs ;
+        fixPoint(trial_t, tts , white, '+') % ITI
         dat.dat{trial_i}.ISI2_EndTime=GetSecs; 
         
         % --------------------------------------------------------- %
@@ -251,9 +255,10 @@ try
         dat.dat{trial_i}.resting_EndTime=GetSecs;
         
         % --------------------------------------------------------- %
-        %         7. ISI3
+        %         7. ISI3 ts.ITI(trial_i,4)
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,4)+ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.math_dura + dat.dat{trial_i}.Movie_dura +10, white, '+') % ITI
+        tts = ts.ITI(trial_i,4) + ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura + secs + 10;
+        fixPoint(trial_t, tts, white, '+') % ITI
         dat.dat{trial_i}.ISI3_EndTime=GetSecs; 
         
         % --------------------------------------------------------- %
@@ -265,15 +270,15 @@ try
         dat.dat{trial_i}.ShortQuiz_Dration = endtime - starttime;
         dat.dat{trial_i}.ShortQuiz_EndTime = GetSecs; 
         % --------------------------------------------------------- %
-        %         9. ISI4
+        %         9. ISI4 (ts.ITI(trial_i,5))
         % --------------------------------------------------------- %
-        fixPoint(trial_t, ts.ITI(trial_i,5) + ts.ITI(trial_i,4)+ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.math_dura + dat.dat{trial_i}.Movie_dura +10, white, '+') % ITI
+        tts = ts.ITI(trial_i,5) + ts.ITI(trial_i,4) + ts.ITI(trial_i,3) + ts.ITI(trial_i,2) + ts.ITI(trial_i,1) + dat.dat{trial_i}.Movie_dura + secs + 10;
+        fixPoint(trial_t, tts, white, '+') % ITI
         dat.dat{trial_i}.ISI4_EndTime=GetSecs; 
 
         % --------------------------------------------------------- %
         %        10. REPORT level of stress  (one to ten)
-        % --------------------------------------------------------- %
-        
+        % --------------------------------------------------------- %        
         dat.dat{trial_i}.ReportStress_EndTime=GetSecs;         
         
         % ------------------------------------ %
@@ -282,7 +287,7 @@ try
         
         dat.dat{trial_i}.TrialEndTimestamp=GetSecs; 
         save(dat.datafile, '-append', 'dat');
-        waitsec_fromstarttime(dat.dat{trial_i}.TrialEndTimestamp,5);
+        %waitsec_fromstarttime(dat.dat{trial_i}.TrialEndTimestamp,5);
     end
     
     %% FINALZING EXPERIMENT    
