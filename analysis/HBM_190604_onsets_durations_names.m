@@ -18,6 +18,7 @@ end
 % 3) Math duration
 % 4) Resting duration
 % 5) Short quiz duration
+
 % 6) math quiz condition (1 = Easy     / 2 = Difficulty);
 % 7) movie condition     (1 = Postivie / 2 = Neutral);
 dur_dat = [];
