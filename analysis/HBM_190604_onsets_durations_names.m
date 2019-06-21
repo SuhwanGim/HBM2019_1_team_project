@@ -18,6 +18,9 @@ for sub_i =1:2
     for trial_i = 1:30        
         [~,shortB]=fileparts(ts{sub_i}.quiz_cond{trial_i});
         shortA(sub_i,trial_i) = str2num(string(total_dat{sub_i}.dat{trial_i}.ShortQuiz_response(:,1)));
+        rtShortQuiz(sub_i,trial_i) = total_dat{sub_i}.dat{trial_i}.ShortQuiz_response_duration;
+        [~,cc]=fileparts(ts{sub_i}.quiz_cond{trial_i});
+        condShortQuiz{sub_i,trial_i}=cc;
     end    
 end
 shortA = shortA'; 

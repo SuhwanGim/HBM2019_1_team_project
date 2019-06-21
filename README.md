@@ -1,13 +1,27 @@
 # HBM2019-1 team project
-(I am working on it) 
 
-Class: Human Brain Mapping 2019 @Biomed Depart in SKKU.
+###Title: 
+How post encoding acute-stress influence epdisodic memory?
 
-Purpose: Doing fMRI experiment with behavioral outcomes.
+###Explanation: 
+This repo is for team project (fMRI studies; class: Human Brain Mapping 2019 @Biomed Depart in SKKU). 
 
-All experiment scripts are based on MATLAB(2018b) and a latest version of PsychToolbox3. 
+###Purpose: 
+Doing fMRI experiment with behavioral outcomes and analyzing behavioral and neuroimaging data. 
 
+###Team member:
+Sumba, Suhwan, Jisoo, Yoonyi
 
+##Dependency:
 
+1) latest version of PsychToolbox3. 
 
-email: suhwan.gim.psych@gmail.com
+2) CanlabToolbox (github.com/canlab/CanlabCore)
+
+3) CocoanToolbox (github.com/cocoanlab/cocoanCORE)
+
+4) SPM12 
+
+5) AAL2 Toolbox (Automated anatomical label)
+
+##### email: suhwan.gim.psych@gmail.com
