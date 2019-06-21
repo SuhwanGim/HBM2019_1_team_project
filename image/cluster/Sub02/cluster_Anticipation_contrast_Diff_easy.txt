@@ -1,0 +1,13 @@
+Name	index	x	y	z	corr	voxels	volume_mm3	maxstat	numpeaks	
+Temporal_Mid_L	  1	-62	 -4	-18	NaN	 31	248	11.00	NaN	
+OUTSIDE	  2	-10	 68	-14	NaN	 25	200	7.00	NaN	
+Lingual_L	  3	-16	-74	-12	NaN	 34	272	10.00	NaN	
+Fusiform_R	  4	 30	-74	 -8	NaN	 36	288	9.00	NaN	
+Lingual_R	  5	 10	-70	  2	NaN	252	2016	1.00	NaN	
+Occipital_Sup_L	  6	-16	-88	 12	NaN	144	1152	2.00	NaN	
+Calcarine_R	  7	 24	-90	  2	NaN	 98	784	3.00	NaN	
+Cuneus_L	  8	-14	-72	 20	NaN	 68	544	5.00	NaN	
+Cuneus_R	  9	 14	-76	 24	NaN	 39	312	8.00	NaN	
+Frontal_Sup_2_L	 10	-26	 32	 48	NaN	 68	544	4.00	NaN	
+Parietal_Inf_R	 11	 38	-42	 54	NaN	 23	184	12.00	NaN	
+Parietal_Sup_R	 12	 32	-52	 68	NaN	 38	304	6.00	NaN	

@@ -11,7 +11,38 @@ for sub_i=1:2
         total_dat{sub_i}.dat(((run_i-1)*5+1):((run_i)*5)) = temp_dat.dat.dat(((run_i-1)*5+1):((run_i)*5)); 
     end
 end
+%% Short quiz answer
+clear shortA
+for sub_i =1:2
+    
+    for trial_i = 1:30        
+        [~,shortB]=fileparts(ts{sub_i}.quiz_cond{trial_i});
+        shortA(sub_i,trial_i) = str2num(string(total_dat{sub_i}.dat{trial_i}.ShortQuiz_response(:,1)));
+    end    
+end
+shortA = shortA'; 
+%shortA = str2num(shortA); 
+%% Math Quiz answer
+clear mathA mathB
+for sub_i =1:2
+    c = [];
+    for trial_i = 1:30        
+        [~,c] = fileparts(ts{sub_i}.math_img{trial_i});        
+        mathB(sub_i,trial_i)=str2num(c);
+        math_cond(sub_i,trial_i) = ts{sub_i}.math_cond(trial_i);
+        mathA(sub_i,trial_i) = str2num(string(total_dat{sub_i}.dat{trial_i}.math_response_keyCode(:,1)));
+        rtB(sub_i,trial_i) = total_dat{sub_i}.dat{trial_i}.rt;
+    end    
+end
+mathA = mathA'; %answer
+mathB = mathB'; %file name
 
+math_easy_answer = [2 1 3 4 3 2 2 1 3 2 3 4 1 2 3 ];
+math_diff_answer = [2 1 3 1 3 2 2 3 4 1 2 3 4 1 2 ];
+
+sub1_math = [math_cond(1,:)' mathA(:,1)]; %[cond response]
+sub2_math = [math_cond(2,:)' mathA(:,2)];
+mathB
 %% Duration
 % 1) Trial duration
 % 2) Movie duration

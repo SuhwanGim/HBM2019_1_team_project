@@ -1,0 +1,5 @@
+Name	index	x	y	z	corr	voxels	volume_mm3	maxstat	numpeaks	
+Temporal_Mid_L	  1	-54	 -2	-22	NaN	 39	312	1.00	NaN	
+OFCant_R	  2	 20	 64	-16	NaN	  3	 24	3.00	NaN	
+OUTSIDE	  3	 16	 68	-14	NaN	  1	  8	3.00	NaN	
+Occipital_Inf_R	  4	 28	-96	 -8	NaN	 21	168	4.00	NaN	

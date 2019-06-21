@@ -1,0 +1,3 @@
+Name	index	x	y	z	corr	voxels	volume_mm3	maxstat	numpeaks	
+Temporal_Inf_R	  1	 50	 10	-40	NaN	 10	 80	2.00	NaN	
+Precuneus_R	  2	  4	-76	 38	NaN	 72	576	3.00	NaN	

@@ -1,0 +1,8 @@
+Name	index	x	y	z	corr	voxels	volume_mm3	maxstat	numpeaks	
+Calcarine_L	  1	-10	-98	-10	NaN	 33	264	6.00	NaN	
+Occipital_Mid_L	  2	-24	-98	 -2	NaN	243	1944	1.00	NaN	
+Lingual_R	  3	 22	-90	 -8	NaN	 71	568	3.00	NaN	
+Postcentral_L	  4	-58	 -6	 38	NaN	 34	272	7.00	NaN	
+Precuneus_L	  5	 -4	-56	 40	NaN	 21	168	9.00	NaN	
+Precentral_R	  6	 56	  6	 42	NaN	 33	264	2.00	NaN	
+Precentral_L	  7	-50	 -6	 54	NaN	 31	248	5.00	NaN	
