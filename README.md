@@ -1,18 +1,18 @@
 # HBM2019-1 team project
 
-###Title: 
+### Title: 
 How post encoding acute-stress influence epdisodic memory?
 
-###Explanation: 
+### Explanation: 
 This repo is for team project (fMRI studies; class: Human Brain Mapping 2019 @Biomed Depart in SKKU). 
 
-###Purpose: 
+### Purpose: 
 Doing fMRI experiment with behavioral outcomes and analyzing behavioral and neuroimaging data. 
 
-###Team member:
+### Team member:
 Sumba, Suhwan, Jisoo, Yoonyi
 
-##Dependency:
+## Dependency:
 
 1) latest version of PsychToolbox3. 
 
