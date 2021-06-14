@@ -12,8 +12,10 @@
 % Screen('AddAudioBufferToMovie', moviePtr, audioBuffer);
 
 %% Examples
-%moviefile = fullfile(pwd,'examples1.mov');
-moviefile = '/Users/WIWIFH/Dropbox/github/experiment/movie_clips/N2.mp4';
+addpath(genpath(pwd))
+moviefile = fullfile(pwd,'examples1.mov');
+%moviefile = '/Users/WIWIFH/Dropbox/github/experiment/movie_clips/N2.mp4';
+moviefile = 'C:\Users\COCOAN_2021LABTOP\Downloads\DSCF5734.mov';
 global theWindow W H; % window property
 global white red red_Alpha orange bgcolor yellow; % color
 global window_rect prompt_ex lb rb tb bb scale_H promptW promptH; % rating scale
@@ -76,14 +78,14 @@ try
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2); % 4 seconds    
     Screen('Flip',theWindow);
-    WaitSecs(5);
+    WaitSecs(1);
     % MOVIE
 
     
-    
+    dur = 1;
     [moviePtr,dur]=Screen('OpenMovie', theWindow, moviefile);
     Screen('PlayMovie', moviePtr, 1); %Screen('PlayMovie?')% 0 == Stop playback, 1 == Normal speed forward, -1 == Normal speed backward,
-    dur = 1;
+    %dur = 1;
     t = GetSecs;
     while (GetSecs - t) < dur
         % Wait for next movie frame, retrieve texture handle to it
@@ -104,16 +106,18 @@ try
     Screen('Flip', theWindow)
     %DrawFormattedText(theWindow, [double('Total movie duration: ') double(num2str(dur)) '\n' 'Program duration: ' double(num2str(GetSecs-t)) ' secs.'], 'center', 'center', white, [], [], [], 1.2); % 4 seconds    
     done = 1;
+    buttons = 0;
     while done
         [x,y,buttons] = GetMouse(theWindow);
         draw_scale_HBM();       
-        Screen('DrawDots', theWindow, [x y], 15, orange, [0 0], 1);        
+        Screen('DrawDots', theWindow, [x y], 15, orange, [0 0], 1); 
+        Screen('Flip',theWindow)
 %         if x
 %         end
 %         if y
 %         end
 %         
-        if buttons
+        if sum(buttons) > 0
             done = 0;
         end
         
@@ -121,7 +125,7 @@ try
     end
     
     Screen('Flip', theWindow)
-    WaitSecs(5);
+    WaitSecs(1);
     
     % END
     Screen('Clear');
