@@ -15,7 +15,7 @@
 addpath(genpath(pwd))
 moviefile = fullfile(pwd,'examples1.mov');
 %moviefile = '/Users/WIWIFH/Dropbox/github/experiment/movie_clips/N2.mp4';
-moviefile = 'C:\Users\COCOAN_2021LABTOP\Downloads\DSCF5734.mov';
+moviefile = 'C:\Users\COCOAN_2021LABTOP\Downloads\Short_movie_summer_bus.mp4';
 global theWindow W H; % window property
 global white red red_Alpha orange bgcolor yellow; % color
 global window_rect prompt_ex lb rb tb bb scale_H promptW promptH; % rating scale
@@ -25,7 +25,8 @@ global fontsize anchor_y anchor_y2 anchor anchor_xl anchor_xr anchor_yu anchor_y
 Screen('Clear');
 Screen('CloseAll');
 window_num = 0; %default
-window_rect = [2 2 1440 800]; % in the test mode, use a little smaller screen [but, wide resoultions]    
+window_rect = [2 2 1440 800]; % in the test mode, use a little smaller screen [but, wide resoultions] 
+window_rect = [1 1 1920 1080];   
 fontsize = 20;
 % color
 bgcolor = 80; 
@@ -73,6 +74,7 @@ Screen('Preference','TextEncodingLocale','ko_KR.UTF-8'); % text encoding
 Screen('Preference', 'SkipSyncTests', 1)
 %Screen('BlendFunction', theWindow, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); % For using transparency e.g., alpha value of [R G B alpha]
 Screen('TextSize', theWindow, fontsize);
+Screen('TextFont', theWindow, font); % setting font
 try 
     % TEXT
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
@@ -87,7 +89,11 @@ try
     Screen('PlayMovie', moviePtr, 1); %Screen('PlayMovie?')% 0 == Stop playback, 1 == Normal speed forward, -1 == Normal speed backward,
     %dur = 1;
     t = GetSecs;
+    l = 1;
     while (GetSecs - t) < dur
+        cur_t = GetSecs;
+        t_timestamp(l) = cur_t;
+        l = l+1;
         % Wait for next movie frame, retrieve texture handle to it
         tex = Screen('GetMovieImage', theWindow, moviePtr);
         Screen('DrawTexture', theWindow, tex);
